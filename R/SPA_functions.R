@@ -2,7 +2,7 @@
 ScoreTest_wSaddleApprox_Get_X1 = function(X1)
 {
 	q1<-ncol(X1)
-	if(q1>=3)
+	if(q1>=2)
 	{
 		if(sum(abs(X1[,1]-X1[,2]))==0)
 		{
@@ -14,7 +14,7 @@ ScoreTest_wSaddleApprox_Get_X1 = function(X1)
 	if(qr1$rank < q1){
 		
 		X1.svd<-svd(X1)
-		X1 = X1.svd$u
+		X1 = X1.svd$u[,1:qr1$rank]
 	} 
 
 	return(X1)
@@ -439,12 +439,16 @@ muNA=mu[NAset],muNB=mu[-NAset],Cutoff=Cutoff,alpha=alpha)
 	return(out)
 }
 
-ScoreTest_SPA <-function(genos,pheno,cov,obj.null,method=c("fastSPA","SPA"),Cutoff=2,alpha=5*10^-8)
+ScoreTest_SPA <-function(genos,pheno,cov,obj.null,method=c("fastSPA","SPA"),Cutoff=2,alpha=5*10^-8,missing.id=NA)
 {
 	method<-match.arg(method)
 
 	if(missing(obj.null))
 	{
+		if(missing(cov) || is.null(cov))
+		{
+			cov<-rep(1,length(pheno))
+		}
 		obj.null<-ScoreTest_wSaddleApprox_NULL_Model(as.matrix(pheno) ~as.matrix(cov))
 	}
 	genos<-as.matrix(genos)
@@ -455,11 +459,20 @@ ScoreTest_SPA <-function(genos,pheno,cov,obj.null,method=c("fastSPA","SPA"),Cuto
 	} else {
 		m <- nrow(genos)
 	}
+	if(is.na(missing.id)==FALSE)
+	{
+		genos[which(genos==missing.id)]<-NA
+	}
 	p.value<-rep(NA,m)
 	p.value.NA<-rep(NA,m)
 	Is.converge<-rep(NA,m)
 	for (i in 1:m)
 	{
+		ina<-which(is.na(genos[i,]))
+		if(length(ina)>0)
+		{
+			genos[i,ina]<-mean(genos[i,],na.rm=TRUE)
+		}
 		if(method=="fastSPA")
 		{
 			re <- TestSPAfast(as.vector(genos[i,,drop=FALSE]), obj.null, Cutoff=Cutoff, alpha=alpha)
