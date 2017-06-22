@@ -41,7 +41,7 @@ Missing value indicator. Numeric or \code{NA}, default value is \code{NA}.
 
 \code{genos} can have missing values denoted by the \code{missing.id} argument. Such missing values will be imputed using mean imputation. \code{pheno} or \code{cov} cannot have missing values. 
 
-\code{genos}, \code{pheno}, \code{cov} are ignored if \code{obj.null} is provided. If both \code{obj.null} and \code{cov} is missing, or \code{obj.null} is missing and \code{cov=NULL}, then the vector \code{rep(1,n)} is assigned to \code{cov}, where \code{n} is the number of subjects.
+\code{pheno} and \code{cov} are ignored if \code{obj.null} is provided. If both \code{obj.null} and \code{cov} is missing, or \code{obj.null} is missing and \code{cov=NULL}, then the vector \code{rep(1,n)} is assigned to \code{cov}, where \code{n} is the number of subjects.
 
 \code{method} = "SPA" is the basic saddlepoint approximation based test without the partially normal approximation improvement.
 \code{method} = "fastSPA" utilizes the partially normal approximation approach for improved efficiency, especially for rare variants.
