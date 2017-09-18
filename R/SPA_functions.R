@@ -36,7 +36,7 @@ ScoreTest_wSaddleApprox_NULL_Model <- function(formula, data=NULL)
 	XVX_inv= solve(t(X1)%*%(X1 * V))
 	XXVX_inv= X1 %*% XVX_inv   
 	
-	re<-list(y=glmfit$y, mu=mu, res=res, V=V, X1=X1, XV=XV, XXVX_inv =XXVX_inv)
+	re<-list(y=glmfit$y, cov=X1, mu=mu, res=res, V=V, X1=X1, XV=XV, XXVX_inv =XXVX_inv)
 	class(re)<-"SA_NULL"
 	return(re)	
 }
@@ -187,7 +187,7 @@ Saddle_Prob<-function(q, mu, g, Cutoff=2,alpha)
 	} 			
 	#
 
-	if(abs(q - m1)/sqrt(var1) < Cutoff || abs(-q - m1)/sqrt(var1) < Cutoff){
+	if(abs(q - m1)/sqrt(var1) < Cutoff){
 
 		pval=pval.noadj
 		
@@ -206,8 +206,14 @@ Saddle_Prob<-function(q, mu, g, Cutoff=2,alpha)
 			Is.converge=FALSE	
 		}				
 	}
-	
-	return(list(p.value=pval, p.value.NA=pval.noadj, Is.converge=Is.converge, p1=p1, p2=p2))
+
+	if(pval!=0 && pval.noadj/pval>10^3)
+	{
+		return(Saddle_Prob(q, mu, g, Cutoff=Cutoff*2,alpha))
+	} else {
+		return(list(p.value=pval, p.value.NA=pval.noadj, Is.converge=Is.converge, p1=p1, p2=p2))
+	}
+
 }
 
 TestSPA<-function(G, obj.null, Cutoff=2,alpha)
@@ -381,7 +387,7 @@ Saddle_Prob_fast<-function(q, g,mu,gNA,gNB,muNA,muNB,Cutoff=2,alpha)
 			
 	#
 	
-	if(abs(q - m1)/sqrt(var1) < Cutoff || abs(-q - m1)/sqrt(var1) < Cutoff){
+	if(abs(q - m1)/sqrt(var1) < Cutoff){
 
 		pval=pval.noadj
 		
@@ -403,8 +409,14 @@ Saddle_Prob_fast<-function(q, g,mu,gNA,gNB,muNA,muNB,Cutoff=2,alpha)
 		}		
 		
 	}
-	
-	return(list(p.value=pval, p.value.NA=pval.noadj, Is.converge=Is.converge, p1=p1, p2=p2))
+
+	if(pval!=0 && pval.noadj/pval>10^3)
+	{
+		return(Saddle_Prob_fast(q, g,mu,gNA,gNB,muNA,muNB,Cutoff=Cutoff*2,alpha))
+	} else {
+		return(list(p.value=pval, p.value.NA=pval.noadj, Is.converge=Is.converge, p1=p1, p2=p2))
+	}
+
 }
 
 TestSPAfast<-function(G, obj.null, Cutoff=2,alpha)
@@ -439,7 +451,112 @@ muNA=mu[NAset],muNB=mu[-NAset],Cutoff=Cutoff,alpha=alpha)
 	return(out)
 }
 
-ScoreTest_SPA <-function(genos,pheno,cov,obj.null,method=c("fastSPA","SPA"),Cutoff=2,alpha=5*10^-8,missing.id=NA)
+
+
+fast.logistf.fit <- function (x, y, weight = NULL, offset = NULL, firth = TRUE, col.fit = NULL, 
+    init = NULL, control) {
+    n <- nrow(x)
+    k <- ncol(x)
+    if (is.null(init)) 
+        init = rep(0, k)
+    if (is.null(col.fit)) 
+        col.fit = 1:k
+    if (is.null(offset)) 
+        offset = rep(0, n)
+    if (is.null(weight)) 
+        weight = rep(1, n)
+    if (col.fit[1] == 0) 
+        maxit <- 0
+    if (missing(control)) 
+        control <- fast.logistf.control()
+    maxit <- control$maxit
+    maxstep <- control$maxstep
+    maxhs <- control$maxhs
+    lconv <- control$lconv
+    gconv <- control$gconv
+    xconv <- control$xconv
+    beta <- init
+    iter <- 0
+    pi <- as.vector(1/(1 + exp(-x %*% beta - offset)))
+    evals <- 1
+    repeat {
+        beta.old <- beta
+        XW2 <- t(x * (weight * pi * (1-pi))^0.5)
+        myQR <- qr(t(XW2))
+        Q <- qr.Q(myQR)
+        h <- (Q*Q) %*% rep(1, ncol(Q))        
+        if (firth) 
+            U.star <- crossprod(x, weight * (y - pi) + h * (0.5 - pi))
+        else U.star <- crossprod(x, weight * (y - pi))
+        XX.covs <- matrix(0, k, k)
+        if (col.fit[1] != 0) {
+            XX.XW2 <- t(x[, col.fit, drop=FALSE] * (weight * pi * (1-pi))^0.5)
+            XX.Fisher <- crossprod(t(XX.XW2))
+            XX.covs[col.fit, col.fit] <- fast.invFisher(XX.Fisher)   ###### HERE IS THE PROBLEM!!!
+        }
+        if(all(is.na(XX.covs)) == T) {
+            break
+        }  
+        delta <- as.vector(XX.covs %*% U.star)
+        delta[is.na(delta)] <- 0
+        mx <- max(abs(delta))/maxstep
+        if (mx > 1) 
+            delta <- delta/mx
+        evals <- evals + 1
+        if (maxit > 0) {
+            iter <- iter + 1
+            beta <- beta + delta
+                pi <- as.vector(1/(1 + exp(-x %*% beta - offset)))
+
+
+        }
+        if (iter == maxit | ((max(abs(delta)) <= xconv) & (all(abs(U.star[col.fit]) < 
+            gconv)))) 
+            break
+    }
+    # Error catching (if chol(x) not positive definite)
+    if(all(is.na(XX.covs))==T) {
+        var <- XX.covs
+        list(beta = NA, var = var, pi = NA, hat.diag = NA, 
+  iter = NA, evals = NA, conv = c(NA, 
+            NA, NA))
+    } else {
+        var <- XX.covs
+        list(beta = beta, var = var, pi = pi, hat.diag = h, 
+            iter = iter, evals = evals, conv = c(max(abs(U.star)),
+		 max(abs(delta))))
+    }
+}
+
+
+fast.logistf.control <- function (maxit = 50, maxhs = 15, maxstep = 15, lconv = 1e-05, 
+    gconv = 1e-05, xconv = 1e-05) 
+{
+    list(maxit = maxit, maxhs = maxhs, maxstep = maxstep, lconv = lconv, 
+        gconv = gconv, xconv = xconv)
+}
+
+fast.logDet <- function (x) {
+    my.chol <- tryCatch(chol(x),error=function(e) {NA})
+    if (all(is.na(my.chol))==T) {
+        return(NA)
+    } else {
+        return (2 * sum(log(diag(my.chol))))
+    }
+}   
+
+fast.invFisher <- function(x) {
+  my.chol <- tryCatch(chol(x),error=function(e) {NA})
+    if (all(is.na(my.chol))==T) {
+        return(NA)
+    } else {
+        return (chol2inv(my.chol))
+    }
+  #ifelse(is.na(my.chol), NA, chol2inv(my.chol))
+}
+
+
+ScoreTest_SPA <-function(genos,pheno,cov,obj.null,method=c("fastSPA","SPA"),minmac=5,Cutoff=2,alpha=5*10^-8,missing.id=NA,beta.out=FALSE,beta.Cutoff=5*10^-7)
 {
 	method<-match.arg(method)
 
@@ -451,6 +568,9 @@ ScoreTest_SPA <-function(genos,pheno,cov,obj.null,method=c("fastSPA","SPA"),Cuto
 		}
 		obj.null<-ScoreTest_wSaddleApprox_NULL_Model(as.matrix(pheno) ~as.matrix(cov))
 	}
+	cov<-obj.null$cov
+	pheno<-obj.null$y
+
 	genos<-as.matrix(genos)
 	if(ncol(genos)==1)
 	{
@@ -466,26 +586,39 @@ ScoreTest_SPA <-function(genos,pheno,cov,obj.null,method=c("fastSPA","SPA"),Cuto
 	p.value<-rep(NA,m)
 	p.value.NA<-rep(NA,m)
 	Is.converge<-rep(NA,m)
+	beta<-rep(NA,m)
+	SEbeta<-rep(NA,m)
 	for (i in 1:m)
 	{
+		try({
 		ina<-which(is.na(genos[i,]))
 		if(length(ina)>0)
 		{
 			genos[i,ina]<-mean(genos[i,],na.rm=TRUE)
 		}
-		if(method=="fastSPA")
+		MAC<-min(sum(genos[i,]),sum(2-genos[i,]))
+		if(MAC>=minmac)
 		{
-			re <- TestSPAfast(as.vector(genos[i,,drop=FALSE]), obj.null, Cutoff=Cutoff, alpha=alpha)
-		} else {
-			re <- TestSPA(as.vector(genos[i,,drop=FALSE]), obj.null, Cutoff=Cutoff, alpha=alpha)
+			if(method=="fastSPA")
+			{
+				re <- TestSPAfast(as.vector(genos[i,,drop=FALSE]), obj.null, Cutoff=Cutoff, alpha=alpha)
+			} else {
+				re <- TestSPA(as.vector(genos[i,,drop=FALSE]), obj.null, Cutoff=Cutoff, alpha=alpha)
+			}
+			p.value[i] <- re$p.value
+			p.value.NA[i] <- re$p.value.NA
+			Is.converge[i]<- re$Is.converge
+			if(beta.out==TRUE && p.value[i]<beta.Cutoff)
+			{
+				re.firth<-fast.logistf.fit(x=cbind(t(genos[i,,drop=FALSE]),cov),y=pheno,firth=TRUE)
+				beta[i]<-re.firth$beta[1]
+				SEbeta[i]<-sqrt(re.firth$var[1,1])
+			}
 		}
-		p.value[i] <- re$p.value
-		p.value.NA[i] <- re$p.value.NA
-		Is.converge[i]<- re$Is.converge
+		})
+		if(i%%1000==0)	print(paste("Processed",i,"SNPs",sep=" "))
 	}
-	return(list(p.value=p.value,p.value.NA=p.value.NA,Is.converge=Is.converge))
+	return(list(p.value=p.value,p.value.NA=p.value.NA,Is.converge=Is.converge,beta=beta,SEbeta=SEbeta))
 }
-
-
 
 

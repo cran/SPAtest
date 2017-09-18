@@ -1,5 +1,5 @@
-39d891e5891507a2c17b4d94db05a5fd *DESCRIPTION
+24769404bf956ade7ae31b78d16fbaee *DESCRIPTION
 85395dd3d81664f45a0c3ac7396aa5dd *NAMESPACE
-8175836b537cb61f82ede82b7bdbcadd *R/SPA_functions.R
-12a44f6b0b2c9c1b3dcbff614e744ca2 *man/ScoreTest_SPA.Rd
+026029074d9be649a02efff52b6381dd *R/SPA_functions.R
+b068437912f45b7eb616caa17d5ecab5 *man/ScoreTest_SPA.Rd
 1208fada2896c317980bdf91b71234ec *man/ScoreTest_wSaddleApprox_NULL_Model.Rd
