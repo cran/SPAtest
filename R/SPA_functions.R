@@ -238,8 +238,8 @@ Saddle_Prob<-function(q, mu, g, Cutoff=2,alpha,output="P",nodes.fixed,nodes.init
 		out.uni2<-getroot_K1(0, mu=mu, g=g, q=qinv)
 		if(out.uni1$Is.converge==TRUE && out.uni2$Is.converge==TRUE)
 		{
-			p1<-Get_Saddle_Prob(out.uni1$root, mu, g, q)
-			p2<-Get_Saddle_Prob(out.uni2$root, mu, g, qinv)
+			p1<-tryCatch(Get_Saddle_Prob(out.uni1$root, mu, g, q),error=function(e) {return(pval.noadj/2)})
+			p2<-tryCatch(Get_Saddle_Prob(out.uni2$root, mu, g, qinv),error=function(e) {return(pval.noadj/2)})
 			pval = abs(p1)+abs(p2)
 			Is.converge=TRUE
 		} else {
@@ -463,8 +463,8 @@ Saddle_Prob_fast<-function(q, g,mu,gNA,gNB,muNA,muNB,Cutoff=2,alpha,output,nodes
 		out.uni2<-getroot_K1_fast(0, mu=mu, g=g, q=qinv,gNA=gNA,gNB=gNB,muNA=muNA,muNB=muNB,NAmu=NAmu,NAsigma=NAsigma)
 		if(out.uni1$Is.converge==TRUE && out.uni2$Is.converge==TRUE)
 		{
-			p1<-Get_Saddle_Prob_fast(out.uni1$root, mu, g, q,gNA,gNB,muNA,muNB,NAmu,NAsigma)
-			p2<-Get_Saddle_Prob_fast(out.uni2$root, mu, g, qinv,gNA,gNB,muNA,muNB,NAmu,NAsigma)
+			p1<-tryCatch(Get_Saddle_Prob_fast(out.uni1$root, mu, g, q,gNA,gNB,muNA,muNB,NAmu,NAsigma),error=function(e) {return(pval.noadj/2)})
+			p2<-tryCatch(Get_Saddle_Prob_fast(out.uni2$root, mu, g, qinv,gNA,gNB,muNA,muNB,NAmu,NAsigma),error=function(e) {return(pval.noadj/2)})
 			pval = abs(p1)+abs(p2)
 			Is.converge=TRUE
 		} else {
@@ -1104,8 +1104,8 @@ Saddle_Prob_MAC<-function(q, p, m1,var1,n0,n1,n2,g, Cutoff=2)
 		out.uni2<-getroot_K1_MAC(0, p=p,n0=n0,n1=n1,n2=n2, g=g,q=qinv)
 		if(out.uni1$Is.converge==TRUE && out.uni2$Is.converge==TRUE)
 		{
-			p1<-Get_Saddle_Prob_MAC(out.uni1$root, p,n0,n1,n2,g, q)
-			p2<-Get_Saddle_Prob_MAC(out.uni2$root,  p,n0,n1,n2,g, qinv)
+			p1<-tryCatch(Get_Saddle_Prob_MAC(out.uni1$root, p,n0,n1,n2,g, q),error=function(e) {return(pval.noadj/2)})
+			p2<-tryCatch(Get_Saddle_Prob_MAC(out.uni2$root,  p,n0,n1,n2,g, qinv),error=function(e) {return(pval.noadj/2)})
 			pval = abs(p1)+abs(p2)
 			Is.converge=TRUE
 		} else {
@@ -1344,8 +1344,8 @@ Hybrid_meta<-function(q_Normal,Var_Normal,q_GC,mu_GC,g_GC,NAset,spldata,Cutoff)
 		out.uni2<-getroot_K1_meta(0, q=qinv,gNB=gNB,muNB=muNB,NAmu=NAmu,NAsigma=NAsigma,nodes=nodes,splfuny1=splfuny1,splfuny2=splfuny2)
 		if(out.uni1$Is.converge==TRUE && out.uni2$Is.converge==TRUE)
 		{
-			p1<-Get_Saddle_Prob_meta(out.uni1$root, q,gNB,muNB,NAmu,NAsigma,nodes,splfuny1,splfuny2)
-			p2<-Get_Saddle_Prob_meta(out.uni2$root, qinv,gNB,muNB,NAmu,NAsigma,nodes,splfuny1,splfuny2)
+			p1<-tryCatch(Get_Saddle_Prob_meta(out.uni1$root, q,gNB,muNB,NAmu,NAsigma,nodes,splfuny1,splfuny2),error=function(e) {return(pval.noadj/2)})
+			p2<-tryCatch(Get_Saddle_Prob_meta(out.uni2$root, qinv,gNB,muNB,NAmu,NAsigma,nodes,splfuny1,splfuny2),error=function(e) {return(pval.noadj/2)})
 			pval = abs(p1)+abs(p2)
 			Is.converge=TRUE
 		} else {
