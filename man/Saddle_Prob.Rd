@@ -8,8 +8,9 @@ Calculate Saddlepoint p values (for external libraries)
 Function to calculate the SPA p value from score function. Intended to be used by external libraries.
 }
 \usage{
-Saddle_Prob(q, mu, g, Cutoff=2,alpha,output="P",nodes.fixed,nodes.init)
-Saddle_Prob_fast(q, g,mu,gNA,gNB,muNA,muNB,Cutoff=2,alpha,output,nodes.fixed,nodes.init)
+Saddle_Prob(q, mu, g, Cutoff=2,alpha,output="P",nodes.fixed,nodes.init,log.p=FALSE)
+Saddle_Prob_fast(q, g,mu,gNA,gNB,muNA,muNB,Cutoff=2,alpha,output,nodes.fixed,
+nodes.init,log.p=FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -49,12 +50,15 @@ Vector denoting the spline nodes for the spline based summary statistics, if you
   \item{nodes.init}{
 Vector denoting the initial values of the spline nodes when you want to estimate the optimal set of spline nodes using the coordinate descent algorithm. Only applicable when the output is "\code{metaspline}". Ignored if  \code{nodes.fixed} is provided. The node at 0 will be automatically added, no need to provide that. The number of finally selected nodes will be the same as in \code{nodes.init}.
 }
+  \item{log.p}{
+Whether to return natural log-transformed p-values, default value is \code{FALSE}.
+}
 }
 %\details{
 %}
 \value{
-\item{p.value}{p-value based on the saddlepoint approximation. If \code{output} = "P", it is unsigned. For all other choice of \code{output}, it is signed.}
-\item{p.value.NA}{p-value based on the normal approximation (traditional score test).  If \code{output} = "P", it is unsigned. For all other choice of \code{output}, it is signed.}
+\item{p.value}{p-value or natural log-transformed p-value based on the saddlepoint approximation. If \code{output} = "P", it is unsigned. For all other choice of \code{output}, it is signed.}
+\item{p.value.NA}{p-value or natural log-transformed p-value based on the normal approximation (traditional score test).  If \code{output} = "P", it is unsigned. For all other choice of \code{output}, it is signed.}
 \item{Is.converge}{"TRUE" or "FALSE" denoting whether the root-finding algorithm for the saddlepoint equation has converged.}
 \item{Score}{Centered score statistic.}
 \item{splfun}{Outputs from fitting the CGF-Spline method, if \code{output} = "metaspline".}
@@ -68,8 +72,8 @@ Vector denoting the initial values of the spline nodes when you want to estimate
 }
 \examples{
 \dontrun{
-Saddle_Prob(q, mu, g, Cutoff=2,alpha,output="P",nodes.fixed,nodes.init)
-Saddle_Prob_fast(q, g,mu,gNA,gNB,muNA,muNB,Cutoff=2,alpha,output,nodes.fixed,nodes.init)
+Saddle_Prob(q, mu, g, Cutoff=2,alpha,output="P",nodes.fixed,nodes.init,log.p=FALSE)
+Saddle_Prob_fast(q, g,mu,gNA,gNB,muNA,muNB,Cutoff=2,alpha,output,nodes.fixed,nodes.init,log.p=FALSE)
 }
 }
 \keyword{regression}

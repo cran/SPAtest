@@ -1,8 +1,8 @@
-cd03238a3a4a63262f3cdffdd3c64e3b *DESCRIPTION
+02c53565368c2cba5783e456ca65879d *DESCRIPTION
 e611e74ee6b32ee964ff05e370a2d6bb *NAMESPACE
-881d7d563522aba58f1e979a22588fa5 *R/SPA_functions.R
+7371f1e218f1beda1665920d3c583c73 *R/SPA_functions.R
 4720e9c9f02820760c7f71a89d7e718c *man/SPAmeta.Rd
-5c94cbd54b3779f22b4746f11a40a63e *man/Saddle_Prob.Rd
-666bd1d320df7c4b7f3dbb69b491fe7a *man/ScoreTest_SPA.Rd
+62b37dcf7967db37f5e05042ac37d78c *man/Saddle_Prob.Rd
+a6693b38ccea9221d3fbca853e0c25f3 *man/ScoreTest_SPA.Rd
 81c07484cebe2388996e567183c1cd08 *man/ScoreTest_SPA_wMeta.Rd
 85f86393c0dbe9a2c5bf9590b625435f *man/ScoreTest_wSaddleApprox_NULL_Model.Rd
